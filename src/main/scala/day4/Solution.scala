@@ -78,7 +78,7 @@ object Solution extends App {
     def parse(lines: List[String], acc: List[Passport], current: Passport): List[Passport] = {
       lines.headOption match {
         case None => current :: acc
-        case Some(line) if (line.isEmpty) => parse(lines.tail, current :: acc, Map.empty)
+        case Some(line) if line.isEmpty => parse(lines.tail, current :: acc, Map.empty)
         case Some(line) =>
           val newPassport = parseLine(line, current)
           parse(lines.tail, acc, newPassport)
