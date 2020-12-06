@@ -15,19 +15,18 @@ object Solution {
       x % max
   }
 
-  private def countTrees(map: Map, slope: Slope, trees: Int = 0, pos: Int = 0): Int = {
+  private def countTrees(map: Map, slope: Slope): Int = {
     @tailrec
     def count(map: Map, pos: Int, trees: Int, xSlope: Int): Int = {
       map.headOption match {
         case None => trees
-        case Some(tile) => {
+        case Some(tile) =>
           val isTree = tile(pos) match {
             case '#' => 1
             case _ => 0
           }
 
           count(map.tail, findPos(pos, tile.length, xSlope), trees + isTree, xSlope)
-        }
       }
     }
 
