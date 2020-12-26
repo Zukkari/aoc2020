@@ -1,6 +1,7 @@
 package day10
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.io.Source
 
 case class Jolt(v: Int)
@@ -43,6 +44,43 @@ object Solution extends App {
     Connector(last.out, Jolt(3), extended) :: res
   }
 
+  def chainAll(
+      adapters: List[Int],
+      jolts: List[Jolt]
+  ): Long = {
+    val cache = mutable.Map.empty[(Int, Jolt), Long]
+    var hits = 0
+
+    def chainAll0(
+        currPos: Int
+    ): Long = {
+      val next = jolts
+        .map(jolt => (currPos + jolt.v, jolt))
+        .filter {
+          case (x, _) => adapters.contains(x)
+        }
+
+      if (next.isEmpty) {
+        1
+      } else {
+        next.map {
+          case (pos, jolt) =>
+            cache.get((pos, jolt)) match {
+              case None =>
+                val r = chainAll0(pos)
+                cache += (pos, jolt) -> r
+                r
+              case Some(v) =>
+                hits += 1
+                v
+            }
+        }.sum
+      }
+    }
+
+    chainAll0(0)
+  }
+
   val jolts = List(
     Jolt(1),
     Jolt(2),
@@ -60,4 +98,7 @@ object Solution extends App {
 
   val answer = diffOne * diffThree
   println(answer)
+
+  val partTwo = chainAll(adapters, jolts)
+  println(partTwo)
 }
