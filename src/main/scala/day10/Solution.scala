@@ -49,6 +49,8 @@ object Solution extends App {
       jolts: List[Jolt]
   ): Long = {
     val cache = mutable.Map.empty[(Int, Jolt), Long]
+    var hits = 0
+    var misses = 0
 
     def chainAll0(
         currPos: Int
@@ -66,17 +68,24 @@ object Solution extends App {
           case (pos, jolt) =>
             cache.get((pos, jolt)) match {
               case None =>
+                misses += 1
+
                 val subPathLength = chainAll0(pos)
                 cache += (pos, jolt) -> subPathLength
                 subPathLength
               case Some(v) =>
+                hits += 1
                 v
             }
         }.sum
       }
     }
 
-    chainAll0(0)
+    val r = chainAll0(0)
+    println(
+      s"Cache hits: $hits and misses: $misses, hit ratio: ${hits.toDouble / misses.toDouble}"
+    )
+    r
   }
 
   val jolts = List(
