@@ -18,34 +18,52 @@ trait Simulation {
 class FixpointSimulationImpl extends Simulation {
   override def simulate(matrix: SeatMatrix): SeatMatrix = {
     def countOccupied(m: SeatMatrix, pos: (Int, Int)): Int = {
-      val (row, seat) = pos
-      val positions = List(
-        (row - 1, seat - 1),
-        (row - 1, seat),
-        (row - 1, seat + 1),
-        (row, seat - 1),
-        (row, seat + 1),
-        (row + 1, seat - 1),
-        (row + 1, seat),
-        (row + 1, seat + 1)
+      val directions = List(
+        (-1, -1),
+        (-1, 0),
+        (-1, 1),
+        (0, -1),
+        (0, 1),
+        (1, -1),
+        (1, 0),
+        (1, 1)
       )
 
-      positions.count {
-        case (x, y) =>
-          m.drop(x).headOption match {
-            case _ if x < 0 => false
-            case None       => false
-            case Some(r) =>
-              r.drop(y).headOption match {
-                case _ if y < 0 => false
-                case Some(s) =>
-                  s match {
-                    case Taken => true
-                    case _     => false
-                  }
-                case None => false
-              }
-          }
+      directions.count(
+        nextSeat(pos, _, m) match {
+          case Taken => true
+          case _     => false
+        }
+      )
+    }
+
+    @tailrec
+    def nextSeat(
+        pos: (Int, Int),
+        direction: (Int, Int),
+        m: SeatMatrix
+    ): Seat = {
+      val (x, y) = pos
+      val (vert, hor) = direction
+
+      val newX = x + vert
+      val newY = y + hor
+
+      if (newX < 0 || newY < 0) {
+        Floor
+      } else {
+        m.drop(newX).headOption match {
+          case None => Floor
+          case Some(row) =>
+            row.drop(newY).headOption match {
+              case Some(v) =>
+                v match {
+                  case Floor => nextSeat((newX, newY), direction, m)
+                  case _     => v
+                }
+              case None => Floor
+            }
+        }
       }
     }
 
@@ -57,7 +75,7 @@ class FixpointSimulationImpl extends Simulation {
             case (seat, seatIndex) =>
               val occupiedCount = countOccupied(prev, (rowIndex, seatIndex))
               seat match {
-                case Taken if occupiedCount >= 4 =>
+                case Taken if occupiedCount >= 5 =>
                   Empty
                 case Empty if occupiedCount == 0 =>
                   Taken
